@@ -94,23 +94,25 @@ def process_uploaded_file(uploaded_file):
         raw_text = get_hwp_text(uploaded_file)
         print(raw_text)
         
-        print("AAA")
         
         from openai import OpenAI
         
         client = OpenAI()
 
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4-1106-preview",
             messages=[
-                {"role": "system", "content": "다음 나올 문서를 요약해줘."},
-                {"role": "user", "content": raw_text[:3000]}
+                {"role": "system", "content": "다음 나올 문서를 Notion 한 페이지로 요약해줘. 종결어미 : ~다."},
+                {"role": "user", "content": raw_text}
             ]
         )
         
         print(response)
         
-        exit()
+        st.session_state["messages"].append(
+            ChatMessage(role="assistant", content=response)
+        )
+
         
         # splitter
         text_splitter = CharacterTextSplitter(

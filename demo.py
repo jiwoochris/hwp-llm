@@ -95,27 +95,12 @@ def process_uploaded_file(uploaded_file):
 
         raw_text = get_hwp_text(uploaded_file)
         print(raw_text)
-        
-        # client = OpenAI()
-
-        # response = client.chat.completions.create(
-        #     model="gpt-4-1106-preview",
-        #     messages=[
-        #         {"role": "system", "content": "다음 나올 문서를 Notion 한 페이지로 요약해줘. 종결어미 : ~다."},
-        #         {"role": "user", "content": raw_text}
-        #     ]
-        # )
-        
-        # print(response.choices[0].message.content)
-        
-        # st.session_state["messages"].append(
-        #     ChatMessage(role="assistant", content=response.choices[0].message.content)
-        # )
+    
         
         # splitter
         text_splitter = CharacterTextSplitter(
             separator = "\r\n",
-            chunk_size = 2000,
+            chunk_size = 1000,
             chunk_overlap  = 200,
             length_function = len,
             is_separator_regex = False,
@@ -144,7 +129,7 @@ def generate_response(query_text, vectorstore, callback):
             content="너는 한글 문서에 대해 알려주는 \"한글이\"야. 주어진 문서를 참고하여 사용자의 질문에 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 대답하지마."
         ),
         HumanMessage(
-            content=f"질문:{query_text}\n\n문서:{docs[0].page_content}"
+            content=f"질문:{query_text}\n\n문서1:{docs[0].page_content}\n문서2:{docs[1].page_content}\n문서3:{docs[2].page_content}"
         ),
     ]
     
@@ -220,22 +205,6 @@ if prompt := st.chat_input("'요약'이라고 입력해보세요!"):
         
         else:
             response = generate_response(prompt, st.session_state['vectorstore'], stream_handler)
-            st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=response)
-            )
-
-   
-# Add the button to your app
-if st.button('요약'):
-    prompt = '요약'
-    st.session_state.messages.append(ChatMessage(role="user", content=prompt))
-    st.chat_message("user").write(prompt)
-
-    with st.chat_message("assistant"):
-        stream_handler = StreamHandler(st.empty())
-        
-        if prompt == "요약":
-            response = generate_summarize(st.session_state['raw_text'], stream_handler)
             st.session_state["messages"].append(
                 ChatMessage(role="assistant", content=response)
             )

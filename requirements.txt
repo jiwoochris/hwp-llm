@@ -1,0 +1,9 @@
+streamlit
+langchain
+pypdf
+python-dotenv
+libhwp
+openai
+faiss-cpu
+tiktoken
+olefile

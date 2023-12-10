@@ -116,10 +116,13 @@ def process_uploaded_file(uploaded_file):
         return vectorstore, raw_text
     return None
 
-def generate_response(query_text, vectorstore, callback):
+def generate_response(query_text, vectorstore_1, vectorstore_2, callback):
 
-    # retriever 
-    docs  = vectorstore.similarity_search(query_text)
+    # retriever 1
+    docs_1  = vectorstore_1.similarity_search(query_text)
+    
+    # retriever 2
+    docs_2  = vectorstore_2.similarity_search(query_text)
     
     # generator
     llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, callbacks=[callback])
@@ -129,7 +132,7 @@ def generate_response(query_text, vectorstore, callback):
             content="너는 한글 문서에 대해 알려주는 \"한글이\"야. 주어진 문서를 참고하여 사용자의 질문에 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 대답하지마."
         ),
         HumanMessage(
-            content=f"질문:{query_text}\n\n문서1:{docs[0].page_content}\n문서2:{docs[1].page_content}\n문서3:{docs[2].page_content}"
+            content=f"질문:{query_text}\n\n2021년 문서:{docs_1[0].page_content}\n2022년 문서:{docs_2[0].page_content}"
         ),
     ]
     
@@ -171,10 +174,10 @@ st.set_page_config(page_title='🦜🔗 한글 hwp 문서 기반 질문 답변 �
 st.title('🦜🔗 한글 hwp 문서 기반 질문 답변 챗봇')
 
 # First file upload
-uploaded_file_1 = st.file_uploader('Upload first article', type='hwp')
+uploaded_file_1 = st.file_uploader('2021년 문서를 업로드 해주세요', type='hwp')
 
 # Second file upload
-uploaded_file_2 = st.file_uploader('Upload second article', type='hwp')
+uploaded_file_2 = st.file_uploader('2022년 문서를 업로드 해주세요', type='hwp')
 
 # File upload logic
 if uploaded_file_1:
@@ -214,7 +217,7 @@ if prompt := st.chat_input("'요약'이라고 입력해보세요!"):
             )
         
         else:
-            response = generate_response(prompt, st.session_state['vectorstore_1'], stream_handler)
+            response = generate_response(prompt, st.session_state['vectorstore_1'], st.session_state['vectorstore_2'], stream_handler)
             st.session_state["messages"].append(
                 ChatMessage(role="assistant", content=response)
             )

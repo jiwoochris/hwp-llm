@@ -165,48 +165,50 @@ def generate_summarize(raw_text, callback):
 
     return response.content
 
-
 # Page title
 st.set_page_config(page_title='🦜🔗 한글 hwp 문서 기반 질문 답변 챗봇')
 st.title('🦜🔗 한글 hwp 문서 기반 질문 답변 챗봇')
 
-# File upload
-uploaded_file = st.file_uploader('Upload an article', type='hwp')
 
-# File upload logic
-if uploaded_file:
-    vectorstore, raw_text = process_uploaded_file(uploaded_file)
-    if vectorstore:
-        st.session_state['vectorstore'] = vectorstore
-        st.session_state['raw_text'] = raw_text
+def app():
+    
+    # File upload
+    uploaded_file = st.file_uploader('Upload an article', type='hwp')
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [
-        ChatMessage(
-            role="assistant", content='안녕하세요! 저는 hwp 문서에 대한 이해를 도와주는 챗봇 \"한글이\"입니다. 어떤게 궁금하신가요?'
-        )
-    ]
+    # File upload logic
+    if uploaded_file:
+        vectorstore, raw_text = process_uploaded_file(uploaded_file)
+        if vectorstore:
+            st.session_state['vectorstore'] = vectorstore
+            st.session_state['raw_text'] = raw_text
 
-for msg in st.session_state.messages:
-    st.chat_message(msg.role).write(msg.content)
-
-if prompt := st.chat_input("'요약'이라고 입력해보세요!"):
-    st.session_state.messages.append(ChatMessage(role="user", content=prompt))
-    st.chat_message("user").write(prompt)
-
-    with st.chat_message("assistant"):
-        stream_handler = StreamHandler(st.empty())
-        
-        if prompt == "요약":
-            response = generate_summarize(st.session_state['raw_text'], stream_handler)
-            st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=response)
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = [
+            ChatMessage(
+                role="assistant", content='안녕하세요! 저는 hwp 문서에 대한 이해를 도와주는 챗봇 \"한글이\"입니다. 어떤게 궁금하신가요?'
             )
-        
-        else:
-            response = generate_response(prompt, st.session_state['vectorstore'], stream_handler)
-            st.session_state["messages"].append(
-                ChatMessage(role="assistant", content=response)
-            )
+        ]
+
+    for msg in st.session_state.messages:
+        st.chat_message(msg.role).write(msg.content)
+
+    if prompt := st.chat_input("'요약'이라고 입력해보세요!"):
+        st.session_state.messages.append(ChatMessage(role="user", content=prompt))
+        st.chat_message("user").write(prompt)
+
+        with st.chat_message("assistant"):
+            stream_handler = StreamHandler(st.empty())
+            
+            if prompt == "요약":
+                response = generate_summarize(st.session_state['raw_text'], stream_handler)
+                st.session_state["messages"].append(
+                    ChatMessage(role="assistant", content=response)
+                )
+            
+            else:
+                response = generate_response(prompt, st.session_state['vectorstore'], stream_handler)
+                st.session_state["messages"].append(
+                    ChatMessage(role="assistant", content=response)
+                )
         
 # streamlit run demo.py

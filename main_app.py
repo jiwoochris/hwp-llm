@@ -128,14 +128,25 @@ def single():
         # generator
         llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True, callbacks=[callback])
         
-        rag_prompt = [
+        if len(docs) < 3:
+            rag_prompt = [
             SystemMessage(
-                content="너는 한글 문서에 대해 알려주는 \"한글이\"야. 주어진 문서를 참고하여 사용자의 질문에 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 대답하지마."
+                content="너는 한국청소년활동진흥원 hwp 문서에 대한 이해를 도와주는 챗봇 \"키와\"야. 주어진 문서를 참고하여 사용자의 질문에 친절하게 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 대답하지마."
             ),
             HumanMessage(
-                content=f"질문:{query_text}\n\n문서1:{docs[0].page_content}\n문서2:{docs[1].page_content}\n문서3:{docs[2].page_content}"
+                content=f"질문:{query_text}\n\n문서:{docs[0].page_content}"
             ),
         ]
+            
+        else:
+            rag_prompt = [
+                SystemMessage(
+                    content="너는 한국청소년활동진흥원 hwp 문서에 대한 이해를 도와주는 챗봇 \"키와\"야. 주어진 문서를 참고하여 사용자의 질문에 친절하게 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 대답하지마."
+                ),
+                HumanMessage(
+                    content=f"질문:{query_text}\n\n문서1:{docs[0].page_content}\n문서2:{docs[1].page_content}\n문서3:{docs[2].page_content}"
+                ),
+            ]
         
         print(rag_prompt)
         
@@ -182,7 +193,7 @@ def single():
     if "messages" not in st.session_state:
         st.session_state["messages"] = [
             ChatMessage(
-                role="assistant", content='안녕하세요! 저는 hwp 문서에 대한 이해를 도와주는 챗봇 \"한글이\"입니다. 어떤게 궁금하신가요?'
+                role="assistant", content='안녕하세요! 저는 한국청소년활동진흥원 hwp 문서에 대한 이해를 도와주는 챗봇 "키와"입니다. 어떤게 궁금하신가요?'
             )
         ]
 
@@ -343,10 +354,10 @@ def dual():
         
         rag_prompt = [
             SystemMessage(
-                content="너는 한글 문서에 대해 알려주는 \"한글이\"야. 주어진 문서를 참고하여 사용자의 질문에 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 대답하지마."
+                content="너는 한국청소년활동진흥원 hwp 문서에 대한 이해를 도와주는 챗봇 \"키와\"야. 전년도(2021년) 문서와 올해(2022년) 문서를 비교하고 참고해서 사용자의 질문에 친절하게 답변을 해줘. 문서에 내용이 정확하게 나와있지 않으면 대답하지마."
             ),
             HumanMessage(
-                content=f"질문:{query_text}\n\n2021년 문서:{docs_1[0].page_content}\n2022년 문서:{docs_2[0].page_content}"
+                content=f"질문:{query_text}\n\n전년도(2021년) 문서:{docs_1[0].page_content}\n\n올해(2022년) 문서:{docs_2[0].page_content}"
             ),
         ]
         
@@ -360,10 +371,10 @@ def dual():
 
 
     # First file upload
-    uploaded_file_1 = st.file_uploader('2021년 문서를 업로드 해주세요', type='hwp')
+    uploaded_file_1 = st.file_uploader('전년도 문서를 업로드 해주세요', type='hwp')
 
     # Second file upload
-    uploaded_file_2 = st.file_uploader('2022년 문서를 업로드 해주세요', type='hwp')
+    uploaded_file_2 = st.file_uploader('올해 문서를 업로드 해주세요', type='hwp')
 
     # File upload logic
     if uploaded_file_1:
@@ -382,7 +393,7 @@ def dual():
     if "messages" not in st.session_state:
         st.session_state["messages"] = [
             ChatMessage(
-                role="assistant", content='안녕하세요! 저는 hwp 문서에 대한 이해를 도와주는 챗봇 \"한글이\"입니다. 어떤게 궁금하신가요?'
+                role="assistant", content='안녕하세요! 저는 한국청소년활동진흥원 hwp 문서에 대한 이해를 도와주는 챗봇 "키와"입니다. 어떤게 궁금하신가요?'
             )
         ]
 
@@ -405,26 +416,29 @@ def dual():
     
 def main():
     # Page title
-    st.set_page_config(page_title='🦜🔗 한글 hwp 문서 기반 질문 답변 챗봇')
-    st.title('🦜🔗 한글 hwp 문서 기반 질문 답변 챗봇')
+    st.set_page_config(page_title='🦜🔗 한국청소년활동진흥원 사업 성과 요약봇')
+    st.title('🦜🔗 한국청소년활동진흥원 사업 성과 요약봇')
+    
+    # 현재 페이지 상태 초기화
+    if "current_page" not in st.session_state:
+        st.session_state["current_page"] = None
 
     # Radio button for page selection
     page = st.radio("Choose a page:", ('Single Document', 'Dual Document'))
+    
+    # 페이지가 변경되었을 때 메시지 초기화
+    if page != st.session_state["current_page"]:
+        st.session_state["messages"] = [
+            ChatMessage(
+                role="assistant", content='안녕하세요! 저는 한국청소년활동진흥원 hwp 문서에 대한 이해를 도와주는 챗봇 "키와"입니다. 어떤게 궁금하신가요?'
+            )
+        ]
+        st.session_state["current_page"] = page
 
     # Conditional function calls
     if page == 'Single Document':
-        st.session_state["messages"] = [
-            ChatMessage(
-                role="assistant", content='안녕하세요! 저는 hwp 문서에 대한 이해를 도와주는 챗봇 \"한글이\"입니다. 어떤게 궁금하신가요?'
-            )
-        ]
         single()
     elif page == 'Dual Document':
-        st.session_state["messages"] = [
-            ChatMessage(
-                role="assistant", content='안녕하세요! 저는 hwp 문서에 대한 이해를 도와주는 챗봇 \"한글이\"입니다. 어떤게 궁금하신가요?'
-            )
-        ]
         dual()
 
 if __name__ == "__main__":
